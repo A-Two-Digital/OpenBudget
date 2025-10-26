@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Open Budget</string>
+    <string name="add_expense_fab_description">Add an expense</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="previous_day">Previous day</string>
+    <string name="next_day">Next day</string>
 </resources>
