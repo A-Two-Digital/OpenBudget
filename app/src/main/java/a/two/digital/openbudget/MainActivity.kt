@@ -2,12 +2,18 @@ package a.two.digital.openbudget
 
 import a.two.digital.openbudget.data.AppDatabase
 import a.two.digital.openbudget.ui.theme.OpenBudgetTheme
+import a.two.digital.openbudget.ui.theme.Purple40
+import a.two.digital.openbudget.ui.theme.Purple80
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,7 +31,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             OpenBudgetTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    floatingActionButton = { ExpenseFAB() },
+                ) { innerPadding ->
                     Greeting(
                         name = "Android",
                         modifier = Modifier.padding(innerPadding)
@@ -33,6 +42,17 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ExpenseFAB() {
+    FloatingActionButton(
+        onClick = { /* TODO */ },
+        containerColor = Purple40,
+        contentColor = Purple80
+    ) {
+        Icon(Icons.Filled.Add, "Add an expense")
     }
 }
 
