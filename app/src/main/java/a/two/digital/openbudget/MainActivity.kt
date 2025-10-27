@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -68,22 +69,21 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize(),
                         contentAlignment = Alignment.TopCenter
                     ) {
+                        /* Date section */
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            ArrowButton(
+                            RoundButton(
                                 onClick = { selectedDate = selectedDate.minusDays(1) },
                                 icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                                 contentDescription = stringResource(R.string.previous_day)
                             )
-
                             DateButton(
                                 selectedDate,
                                 onDateSelected = { newDate -> selectedDate = newDate }
                             )
-
-                            ArrowButton(
+                            RoundButton(
                                 onClick = { selectedDate = selectedDate.plusDays(1) },
                                 icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                 contentDescription = stringResource(R.string.next_day)
@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ArrowButton(onClick: () -> Unit, icon: ImageVector, contentDescription: String) {
+fun RoundButton(onClick: () -> Unit, icon: ImageVector, contentDescription: String) {
     TextButton(
         onClick = onClick,
         modifier = Modifier.size(40.dp),
@@ -158,15 +158,33 @@ fun DatePickerModal(onDateSelected: (Long?) -> Unit, onDismiss: () -> Unit) {
 }
 
 @Composable
+fun AddExpenseDialog(onDismissRequest: () -> Unit) {
+    Dialog(onDismissRequest = { onDismissRequest() }) {
+        Text(
+            text = "This is a dialog with buttons and an image.",
+            modifier = Modifier.padding(16.dp),
+        )
+    }
+}
+
+@Composable
 fun ExpenseFAB() {
+    var showAddExpenseDialog by remember { mutableStateOf(false) }
+
     FloatingActionButton(
-        onClick = { /* TODO */ },
+        onClick = { showAddExpenseDialog = true },
         containerColor = Purple40,
         contentColor = Purple80
     ) {
         Icon(
             Icons.Filled.Add,
             contentDescription = stringResource(R.string.add_expense_fab_description)
+        )
+    }
+
+    if (showAddExpenseDialog) {
+        AddExpenseDialog(
+            onDismissRequest = { showAddExpenseDialog = false }
         )
     }
 }
