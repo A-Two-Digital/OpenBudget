@@ -4,7 +4,6 @@ import a.two.digital.openbudget.R
 import a.two.digital.openbudget.ui.theme.OpenBudgetTheme
 import a.two.digital.openbudget.ui.theme.Purple40
 import a.two.digital.openbudget.ui.theme.Purple80
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -59,7 +58,7 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    floatingActionButton = { ExpenseFAB(LocalContext.current) },
+                    floatingActionButton = { ExpenseFAB(selectedDate) },
                 ) { innerPadding ->
                     Box(
                         modifier = Modifier
@@ -159,9 +158,15 @@ fun DatePickerModal(onDateSelected: (Long?) -> Unit, onDismiss: () -> Unit) {
 //endregion
 
 @Composable
-fun ExpenseFAB(context: Context) {
+fun ExpenseFAB(selectedDate: LocalDate) {
+    val context = LocalContext.current
+
     FloatingActionButton(
-        onClick = { context.startActivity(Intent(context, AddExpenseActivity::class.java)) },
+        onClick = {
+            val intent = Intent(context, AddExpenseActivity::class.java)
+            intent.putExtra(AddExpenseActivity.EXTRA_SELECTED_DATE, selectedDate.toEpochDay())
+            context.startActivity(intent)
+        },
         containerColor = Purple40,
         contentColor = Purple80
     ) {

@@ -4,9 +4,10 @@ import a.two.digital.openbudget.R
 import a.two.digital.openbudget.data.AppDatabase
 import a.two.digital.openbudget.logic.ExpenseTypeViewModel
 import a.two.digital.openbudget.logic.ExpenseTypeViewModelFactory
-import a.two.digital.openbudget.ui.ui.theme.OpenBudgetTheme
+import a.two.digital.openbudget.ui.theme.OpenBudgetTheme
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.clickable
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,18 +25,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldLabelPosition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -50,25 +54,55 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 class AddExpenseActivity : ComponentActivity() {
+
+    companion object {
+        const val EXTRA_SELECTED_DATE = "extra_selected_day"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val selectedDate = LocalDate.ofEpochDay(
+            intent.getLongExtra(
+                EXTRA_SELECTED_DATE,
+                LocalDate.now().toEpochDay()
+            )
+        )
         setContent {
             OpenBudgetTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                Scaffold(
+                    modifier = Modifier.fillMaxSize()
+                ) { innerPadding ->
+                    Box(
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Top,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Title()
+                            TextField(R.string.title, R.string.title_placeholder)
+                            DateTextField(R.string.date, selectedDate)
+                        }
+                    }
                 }
             }
         }
@@ -76,7 +110,104 @@ class AddExpenseActivity : ComponentActivity() {
 }
 
 @Composable
-fun AddExpenseDialog(onDismissRequest: () -> Unit, database: AppDatabase) {
+fun Title() {
+    val activity = LocalActivity.current as ComponentActivity
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 5.dp, bottom = 10.dp)
+    ) {
+        Icon(
+            Icons.Filled.ArrowBackIosNew,
+            contentDescription = stringResource(R.string.exit_add_expense_activity),
+            Modifier
+                .padding(20.dp)
+                .size(18.dp)
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }) { activity.finish() }
+        )
+        Text(
+            stringResource(R.string.add_an_expense),
+            modifier = Modifier.weight(1f),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.size(18.dp + 40.dp))
+    }
+}
+
+@Composable
+fun TextField(labelText: Int, placeholderText: Int) {
+    OutlinedTextField(
+        state = rememberTextFieldState(),
+        label = { Text(text = stringResource(labelText)) },
+        labelPosition = TextFieldLabelPosition.Above(),
+        placeholder = { Text(text = stringResource(placeholderText)) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 10.dp)
+    )
+}
+
+@Composable
+fun DateTextField(labelText: Int, selectedDate: LocalDate) {
+    var showModal by remember { mutableStateOf(false) }
+    val textFieldState =
+        rememberTextFieldState(selectedDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)))
+
+    Box {
+        OutlinedTextField(
+            state = textFieldState,
+            label = { Text(text = stringResource(labelText)) },
+            labelPosition = TextFieldLabelPosition.Above(),
+            readOnly = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            trailingIcon = {
+                Icon(
+                    Icons.Filled.DateRange,
+                    contentDescription = stringResource(R.string.date_description)
+                )
+            }
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = { showModal = true }
+                )
+        )
+    }
+
+    if (showModal) {
+        DatePickerModal(
+            onDateSelected = { dateInMillis ->
+                dateInMillis?.let {
+                    val newDate =
+                        Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate()
+                    textFieldState.setTextAndPlaceCursorAtEnd(
+                        newDate.format(
+                            DateTimeFormatter.ofLocalizedDate(
+                                FormatStyle.LONG
+                            )
+                        )
+                    )
+                }
+            },
+            onDismiss = { showModal = false }
+        )
+    }
+}
+
+@Composable
+fun AddExpense(onDismissRequest: () -> Unit, database: AppDatabase) {
     val expenseTypeViewModel: ExpenseTypeViewModel = viewModel(
         factory = ExpenseTypeViewModelFactory(database.expenseTypeDao())
     )
@@ -94,30 +225,7 @@ fun AddExpenseDialog(onDismissRequest: () -> Unit, database: AppDatabase) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 //region Title
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        stringResource(R.string.add_an_expense),
-                        Modifier
-                            .weight(1f)
-                            .padding(start = 40.dp),
-                        fontSize = 16.5.sp,
-                        textAlign = TextAlign.Center
-                    )
-                    Icon(
-                        Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.close_add_expense_dialog),
-                        Modifier
-                            .padding(12.dp)
-                            .size(20.dp)
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }) { onDismissRequest() }
-                    )
-                }
-                HorizontalDivider(thickness = 1.5.dp)
+
                 //endregion
 
                 OutlinedTextField(
@@ -194,21 +302,5 @@ fun AddExpenseDialog(onDismissRequest: () -> Unit, database: AppDatabase) {
                 //endregion
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    OpenBudgetTheme {
-        Greeting("Android")
     }
 }
