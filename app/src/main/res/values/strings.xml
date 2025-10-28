@@ -11,4 +11,5 @@
     <string name="close_add_expense_dialog">Close the add an expense dialog</string>
     <string name="expense_type_dropdown_arrow">Open or close expense type selection</string>
     <string name="location">Location </string>
+    <string name="title_activity_add_expense">AddExpenseActivity</string>
 </resources>
