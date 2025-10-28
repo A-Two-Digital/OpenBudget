@@ -7,4 +7,8 @@
     <string name="next_day">Next day</string>
     <string name="price">Price</string>
     <string name="expense_type">Expense type</string>
+    <string name="date">Date</string>
+    <string name="close_add_expense_dialog">Close the add an expense dialog</string>
+    <string name="expense_type_dropdown_arrow">Open or close expense type selection</string>
+    <string name="location">Location </string>
 </resources>
