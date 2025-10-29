@@ -24,18 +24,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Help
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldLabelPosition
 import androidx.compose.runtime.Composable
@@ -46,6 +51,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Size
@@ -96,16 +102,27 @@ class AddExpenseActivity : ComponentActivity() {
                         contentAlignment = Alignment.TopCenter
                     ) {
                         Column(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState()),
                             verticalArrangement = Arrangement.Top,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Title()
                             TextField(R.string.title, R.string.title_placeholder)
                             DateTextField(R.string.date, selectedDate)
+
+                            Spacer(modifier = Modifier.padding(vertical = 5.dp))
+                            ChoiceSwitch(R.string.simple_or_detailed_label)
+                            ChoiceSwitch(R.string.spent_or_gained_label)
+                            ChoiceSwitch(R.string.recurring_label)
+                            Spacer(modifier = Modifier.padding(vertical = 5.dp))
+
                             ExpenseTypeSelect(database)
                             TextField(R.string.price, R.string.price_placeholder)
                             TextField(R.string.description, R.string.description_placeholder)
+
+                            CreateExpenseButton()
                         }
                     }
                 }
@@ -278,6 +295,48 @@ fun ExpenseTypeSelect(database: AppDatabase) {
                     }
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun ChoiceSwitch(labelText: Int) {
+    var checked by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 0.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(stringResource(labelText))
+        Spacer(modifier = Modifier.weight(1f))
+        Switch(
+            checked = checked,
+            onCheckedChange = { checked = it },
+            modifier = Modifier.padding(end = 10.dp)
+        )
+        Icon(
+            Icons.AutoMirrored.Outlined.Help,
+            contentDescription = "a",
+            modifier = Modifier.alpha(0.5f)
+        )
+    }
+}
+
+@Composable
+fun CreateExpenseButton() {
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        FilledTonalButton(
+            modifier = Modifier
+                .width(200.dp)
+                .padding(horizontal = 20.dp, vertical = 10.dp),
+            onClick = {}
+        ) {
+            Text(stringResource(R.string.add))
         }
     }
 }

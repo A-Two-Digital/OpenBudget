@@ -19,4 +19,11 @@
     <string name="description">Description (optional)</string>
     <string name="description_placeholder">e.g. item names</string>
     <string name="expense_type_placeholder">e.g. Groceries, Rent, Entertainment</string>
+    <string name="add">Add</string>
+    <string name="simple_or_detailed_label">Use detailed entry</string>
+    <string name="simple_or_detailed_description">Check for more detailed options; uncheck for a quick entry.</string>
+    <string name="recurring_label">Recurring expense</string>
+    <string name="recurring_description">Select if this expense occurs regularly (e.g., weekly, monthly).</string>
+    <string name="spent_or_gained_label">Money gained</string>
+    <string name="spent_or_gained_description">Check if this transaction is income; uncheck if it\'s an expense.</string>
 </resources>
