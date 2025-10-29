@@ -5,12 +5,15 @@ import a.two.digital.openbudget.R
 import a.two.digital.openbudget.data.AppDatabase
 import a.two.digital.openbudget.logic.ExpenseTypeViewModel
 import a.two.digital.openbudget.logic.ExpenseTypeViewModelFactory
+import a.two.digital.openbudget.logic.ExpenseWithItemsViewModel
+import a.two.digital.openbudget.logic.ExpenseWithItemsViewModelFactory
 import a.two.digital.openbudget.ui.theme.OpenBudgetTheme
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +27,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
@@ -45,6 +51,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldLabelPosition
@@ -90,6 +97,10 @@ class AddExpenseActivity : ComponentActivity() {
 
     private val database: AppDatabase by lazy {
         (application as OpenBudgetApplication).database
+    }
+
+    private val expenseWithItemsViewModel: ExpenseWithItemsViewModel by viewModels {
+        ExpenseWithItemsViewModelFactory()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -158,7 +169,15 @@ class AddExpenseActivity : ComponentActivity() {
                                         .fillMaxWidth()
                                         .height(350.dp)
                                 ) {
-                                    ExpenseItemTitle()
+                                    ExpenseItemTitle(onClick = { expenseWithItemsViewModel.addExpenseItem() })
+
+                                    val expenseWithItemsState by expenseWithItemsViewModel.expenseWithItems.collectAsState()
+
+                                    LazyColumn {
+                                        items(expenseWithItemsState.items) { item ->
+                                            Text(text = "Item: 1")
+                                        }
+                                    }
                                 }
                             }
 
@@ -203,14 +222,14 @@ fun Title() {
 }
 
 @Composable
-fun ExpenseItemTitle() {
+fun ExpenseItemTitle(onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 10.dp)
     ) {
-        Spacer(modifier = Modifier.size(20.dp + 40.dp))
+        Spacer(modifier = Modifier.size(30.dp + 30.dp))
         Text(
             stringResource(R.string.add_expense_item),
             modifier = Modifier.weight(1f),
@@ -218,13 +237,19 @@ fun ExpenseItemTitle() {
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
-        Icon(
-            Icons.Filled.Add,
-            contentDescription = stringResource(R.string.add_expense_item),
-            Modifier
-                .padding(20.dp)
-                .size(20.dp)
-        )
+        Surface(
+            onClick = { onClick() },
+            modifier = Modifier.padding(horizontal = 10.dp),
+            shape = CircleShape
+        ) {
+            Icon(
+                Icons.Filled.Add,
+                contentDescription = stringResource(R.string.add_expense_item),
+                Modifier
+                    .size(30.dp)
+                    .padding(5.dp)
+            )
+        }
     }
 }
 
