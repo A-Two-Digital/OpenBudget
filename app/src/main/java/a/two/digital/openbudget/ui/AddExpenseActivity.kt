@@ -36,18 +36,26 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldLabelPosition
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,6 +73,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -113,9 +122,15 @@ class AddExpenseActivity : ComponentActivity() {
                             DateTextField(R.string.date, selectedDate)
 
                             Spacer(modifier = Modifier.padding(vertical = 5.dp))
-                            ChoiceSwitch(R.string.simple_or_detailed_label)
-                            ChoiceSwitch(R.string.spent_or_gained_label)
-                            ChoiceSwitch(R.string.recurring_label)
+                            ChoiceSwitch(
+                                R.string.simple_or_detailed_label,
+                                R.string.simple_or_detailed_description
+                            )
+                            ChoiceSwitch(
+                                R.string.spent_or_gained_label,
+                                R.string.spent_or_gained_description
+                            )
+                            ChoiceSwitch(R.string.recurring_label, R.string.recurring_description)
                             Spacer(modifier = Modifier.padding(vertical = 5.dp))
 
                             ExpenseTypeSelect(database)
@@ -299,9 +314,12 @@ fun ExpenseTypeSelect(database: AppDatabase) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChoiceSwitch(labelText: Int) {
+fun ChoiceSwitch(labelText: Int, descriptionText: Int) {
     var checked by remember { mutableStateOf(false) }
+    val tooltipState = rememberTooltipState(isPersistent = true)
+    val coroutineScope = rememberCoroutineScope()
 
     Row(
         modifier = Modifier
@@ -316,11 +334,34 @@ fun ChoiceSwitch(labelText: Int) {
             onCheckedChange = { checked = it },
             modifier = Modifier.padding(end = 10.dp)
         )
-        Icon(
-            Icons.AutoMirrored.Outlined.Help,
-            contentDescription = "a",
-            modifier = Modifier.alpha(0.5f)
-        )
+
+        TooltipBox(
+            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                TooltipAnchorPosition.Above,
+                4.dp
+            ),
+            tooltip = {
+                RichTooltip(
+                    title = { Text(stringResource(labelText)) }
+                ) {
+                    Text(stringResource(descriptionText))
+                }
+            },
+            state = tooltipState
+        ) {
+            IconButton(onClick = {
+                coroutineScope.launch {
+                    tooltipState.show()
+                }
+            }) {
+                Icon(
+                    Icons.AutoMirrored.Outlined.Help,
+                    contentDescription = stringResource(descriptionText),
+                    modifier = Modifier.alpha(0.5f)
+                )
+            }
+        }
+
     }
 }
 
