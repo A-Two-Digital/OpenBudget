@@ -12,5 +12,5 @@ data class ExpenseWithItems(
         parentColumn = "id",
         entityColumn = "expenseId"
     )
-    val items: List<ExpenseItem>
+    val items: MutableList<ExpenseItem>
 )

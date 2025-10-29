@@ -30,6 +30,7 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Help
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -40,6 +41,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Scaffold
@@ -121,21 +123,44 @@ class AddExpenseActivity : ComponentActivity() {
                             TextField(R.string.title, R.string.title_placeholder)
                             DateTextField(R.string.date, selectedDate)
 
+                            var isDetailed by remember { mutableStateOf(false) }
                             Spacer(modifier = Modifier.padding(vertical = 5.dp))
                             ChoiceSwitch(
                                 R.string.simple_or_detailed_label,
-                                R.string.simple_or_detailed_description
+                                R.string.simple_or_detailed_description,
+                                checked = isDetailed,
+                                onCheckedChange = { isDetailed = it }
                             )
                             ChoiceSwitch(
                                 R.string.spent_or_gained_label,
-                                R.string.spent_or_gained_description
+                                R.string.spent_or_gained_description,
+                                false,
+                                {}
                             )
-                            ChoiceSwitch(R.string.recurring_label, R.string.recurring_description)
+                            ChoiceSwitch(
+                                R.string.recurring_label,
+                                R.string.recurring_description,
+                                false,
+                                {})
                             Spacer(modifier = Modifier.padding(vertical = 5.dp))
 
-                            ExpenseTypeSelect(database)
-                            TextField(R.string.price, R.string.price_placeholder)
-                            TextField(R.string.description, R.string.description_placeholder)
+                            if (!isDetailed) {
+                                ExpenseTypeSelect(database)
+                                TextField(R.string.price, R.string.price_placeholder)
+                                TextField(R.string.description, R.string.description_placeholder)
+                            } else {
+                                OutlinedCard(
+                                    modifier = Modifier
+                                        .padding(
+                                            horizontal = 20.dp,
+                                            vertical = 10.dp
+                                        )
+                                        .fillMaxWidth()
+                                        .height(350.dp)
+                                ) {
+                                    ExpenseItemTitle()
+                                }
+                            }
 
                             CreateExpenseButton()
                         }
@@ -174,6 +199,32 @@ fun Title() {
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.size(18.dp + 40.dp))
+    }
+}
+
+@Composable
+fun ExpenseItemTitle() {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 10.dp)
+    ) {
+        Spacer(modifier = Modifier.size(20.dp + 40.dp))
+        Text(
+            stringResource(R.string.add_expense_item),
+            modifier = Modifier.weight(1f),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Icon(
+            Icons.Filled.Add,
+            contentDescription = stringResource(R.string.add_expense_item),
+            Modifier
+                .padding(20.dp)
+                .size(20.dp)
+        )
     }
 }
 
@@ -316,8 +367,12 @@ fun ExpenseTypeSelect(database: AppDatabase) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChoiceSwitch(labelText: Int, descriptionText: Int) {
-    var checked by remember { mutableStateOf(false) }
+fun ChoiceSwitch(
+    labelText: Int,
+    descriptionText: Int,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
     val tooltipState = rememberTooltipState(isPersistent = true)
     val coroutineScope = rememberCoroutineScope()
 
@@ -331,7 +386,7 @@ fun ChoiceSwitch(labelText: Int, descriptionText: Int) {
         Spacer(modifier = Modifier.weight(1f))
         Switch(
             checked = checked,
-            onCheckedChange = { checked = it },
+            onCheckedChange = onCheckedChange,
             modifier = Modifier.padding(end = 10.dp)
         )
 

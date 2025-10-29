@@ -26,4 +26,5 @@
     <string name="recurring_description">Select if this expense occurs regularly (e.g., weekly, monthly).</string>
     <string name="spent_or_gained_label">Money gained</string>
     <string name="spent_or_gained_description">Check if this transaction is income; uncheck if it\'s an expense.</string>
+    <string name="add_expense_item">Add an expense item</string>
 </resources>
