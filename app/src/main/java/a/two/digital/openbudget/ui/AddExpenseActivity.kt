@@ -1,5 +1,6 @@
 package a.two.digital.openbudget.ui
 
+import a.two.digital.openbudget.OpenBudgetApplication
 import a.two.digital.openbudget.R
 import a.two.digital.openbudget.data.AppDatabase
 import a.two.digital.openbudget.logic.ExpenseTypeViewModel
@@ -23,7 +24,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
@@ -31,7 +31,6 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -59,7 +58,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.time.Instant
 import java.time.LocalDate
@@ -71,6 +69,10 @@ class AddExpenseActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_SELECTED_DATE = "extra_selected_day"
+    }
+
+    private val database: AppDatabase by lazy {
+        (application as OpenBudgetApplication).database
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -101,6 +103,9 @@ class AddExpenseActivity : ComponentActivity() {
                             Title()
                             TextField(R.string.title, R.string.title_placeholder)
                             DateTextField(R.string.date, selectedDate)
+                            ExpenseTypeSelect(database)
+                            TextField(R.string.price, R.string.price_placeholder)
+                            TextField(R.string.description, R.string.description_placeholder)
                         }
                     }
                 }
@@ -167,7 +172,7 @@ fun DateTextField(labelText: Int, selectedDate: LocalDate) {
             readOnly = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
+                .padding(horizontal = 20.dp, vertical = 10.dp),
             trailingIcon = {
                 Icon(
                     Icons.Filled.DateRange,
@@ -207,99 +212,71 @@ fun DateTextField(labelText: Int, selectedDate: LocalDate) {
 }
 
 @Composable
-fun AddExpense(onDismissRequest: () -> Unit, database: AppDatabase) {
+fun ExpenseTypeSelect(database: AppDatabase) {
     val expenseTypeViewModel: ExpenseTypeViewModel = viewModel(
         factory = ExpenseTypeViewModelFactory(database.expenseTypeDao())
     )
-
-    Dialog(onDismissRequest = { onDismissRequest() }) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(600.dp),
-            shape = RoundedCornerShape(10.dp)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                //region Title
-
-                //endregion
-
-                OutlinedTextField(
-                    state = rememberTextFieldState(),
-                    label = { Text(stringResource(R.string.ok)) })
-                OutlinedTextField(state = rememberTextFieldState(), label = { Text("Label") })
-                OutlinedTextField(state = rememberTextFieldState(), label = { Text("Label") })
-                OutlinedTextField(state = rememberTextFieldState(), label = { Text("Label") })
-
-                //region Expense Type
-                var expenseTypesExpanded by remember { mutableStateOf(false) }
-                val expenseTypes by expenseTypeViewModel.expenseTypes.collectAsState()
-                var selectedExpenseType by remember { mutableStateOf("") }
-                var selectedExpenseTypeSize by remember { mutableStateOf(Size.Zero) }
-                val icon =
-                    if (expenseTypesExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown
-                val focusRequester = remember { FocusRequester() }
-                val focusManager = LocalFocusManager.current
-                Column(
-                    modifier = Modifier.padding(20.dp)
-                ) {
-                    Box {
-                        OutlinedTextField(
-                            value = selectedExpenseType,
-                            onValueChange = { selectedExpenseType = it },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .onGloballyPositioned { coordinates ->
-                                    selectedExpenseTypeSize = coordinates.size.toSize()
-                                }
-                                .focusRequester(focusRequester),
-                            label = { Text(stringResource(R.string.expense_type)) },
-                            trailingIcon = {
-                                Icon(
-                                    icon,
-                                    contentDescription = stringResource(R.string.expense_type_dropdown_arrow)
-                                )
-                            },
-                            readOnly = true
-                        )
-                        Box(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                    onClick = {
-                                        expenseTypesExpanded = !expenseTypesExpanded
-                                        focusRequester.requestFocus()
-                                    }
-                                )
-                        )
+    val textFieldState = rememberTextFieldState("")
+    var expenseTypesExpanded by remember { mutableStateOf(false) }
+    val expenseTypes by expenseTypeViewModel.expenseTypes.collectAsState()
+    var selectedExpenseTypeSize by remember { mutableStateOf(Size.Zero) }
+    val icon =
+        if (expenseTypesExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    Column(
+        modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+    ) {
+        Box {
+            OutlinedTextField(
+                state = textFieldState,
+                label = { Text(stringResource(R.string.expense_type)) },
+                labelPosition = TextFieldLabelPosition.Above(),
+                placeholder = { Text(stringResource(R.string.expense_type_placeholder)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onGloballyPositioned { coordinates ->
+                        selectedExpenseTypeSize = coordinates.size.toSize()
                     }
-                    DropdownMenu(
-                        expanded = expenseTypesExpanded,
-                        onDismissRequest = {
-                            expenseTypesExpanded = false; focusManager.clearFocus()
-                        },
-                        modifier = Modifier
-                            .width(with(LocalDensity.current) { selectedExpenseTypeSize.width.toDp() })
-                            .height(200.dp)
-                    ) {
-                        expenseTypes.forEach { expenseType ->
-                            DropdownMenuItem(
-                                text = { Text(text = expenseType.name) },
-                                onClick = {
-                                    selectedExpenseType = expenseType.name; expenseTypesExpanded =
-                                    false
-                                }
-                            )
+                    .focusRequester(focusRequester),
+                trailingIcon = {
+                    Icon(
+                        icon,
+                        contentDescription = stringResource(R.string.expense_type_dropdown_arrow)
+                    )
+                },
+                readOnly = true
+            )
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {
+                            expenseTypesExpanded = !expenseTypesExpanded
+                            focusRequester.requestFocus()
                         }
+                    )
+            )
+        }
+        DropdownMenu(
+            expanded = expenseTypesExpanded,
+            onDismissRequest = {
+                expenseTypesExpanded = false; focusManager.clearFocus()
+            },
+            modifier = Modifier
+                .width(with(LocalDensity.current) { selectedExpenseTypeSize.width.toDp() })
+                .height(250.dp)
+        ) {
+            expenseTypes.forEach { expenseType ->
+                DropdownMenuItem(
+                    text = { Text(text = expenseType.name) },
+                    onClick = {
+                        textFieldState.setTextAndPlaceCursorAtEnd(expenseType.name)
+                        expenseTypesExpanded = false
                     }
-                }
-                //endregion
+                )
             }
         }
     }
