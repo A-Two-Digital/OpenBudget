@@ -9,6 +9,19 @@ import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import java.util.UUID
+
+data class ValidationState(
+    val isTitleError: Boolean = false,
+    val isDateError: Boolean = false,
+    val itemErrors: Map<Int, Set<ItemErrorType>> = emptyMap()
+)
+
+enum class ItemErrorType {
+    DESCRIPTION,
+    PRICE,
+    EXPENSE_TYPE
+}
 
 class ExpenseWithItemsViewModel : ViewModel() {
 
@@ -21,6 +34,7 @@ class ExpenseWithItemsViewModel : ViewModel() {
             ),
             items = mutableListOf(
                 ExpenseItem(
+                    id = UUID.randomUUID().hashCode(),
                     description = "",
                     price = 0.0,
                     expenseTypeId = -1,
@@ -29,14 +43,17 @@ class ExpenseWithItemsViewModel : ViewModel() {
             )
         )
     )
-
     var expenseWithItems = _expenseWithItems.asStateFlow()
+
+    private val _validationState = MutableStateFlow(ValidationState())
+    var validationState = _validationState.asStateFlow()
 
     fun addExpenseItem() {
         _expenseWithItems.update { currentState ->
             val newItems = currentState.items.toMutableList()
             newItems.add(
                 ExpenseItem(
+                    id = UUID.randomUUID().hashCode(),
                     description = "",
                     price = 0.0,
                     expenseTypeId = -1,
@@ -65,9 +82,10 @@ class ExpenseWithItemsViewModel : ViewModel() {
         }
     }
 
-    fun updateExpenseItemDescription(index: Int, description: String) {
+    fun updateExpenseItemDescription(id: Int, description: String) {
         _expenseWithItems.update {
             val newItems = it.items.toMutableList()
+            val index = newItems.indexOfFirst { item -> item.id == id }
             if (index in newItems.indices) {
                 val itemToUpdate = newItems[index]
                 newItems[index] = itemToUpdate.copy(description = description)
@@ -77,9 +95,10 @@ class ExpenseWithItemsViewModel : ViewModel() {
         }
     }
 
-    fun updateExpenseItemPrice(index: Int, price: Double) {
+    fun updateExpenseItemPrice(id: Int, price: Double) {
         _expenseWithItems.update {
             val newItems = it.items.toMutableList()
+            val index = newItems.indexOfFirst { item -> item.id == id }
             if (index in newItems.indices) {
                 val itemToUpdate = newItems[index]
                 newItems[index] = itemToUpdate.copy(price = price)
@@ -89,9 +108,10 @@ class ExpenseWithItemsViewModel : ViewModel() {
         }
     }
 
-    fun updateExpenseItemExpenseType(index: Int, expenseType: Int) {
+    fun updateExpenseItemExpenseType(id: Int, expenseType: Int) {
         _expenseWithItems.update {
             val newItems = it.items.toMutableList()
+            val index = newItems.indexOfFirst { item -> item.id == id }
             if (index in newItems.indices) {
                 val itemToUpdate = newItems[index]
                 newItems[index] = itemToUpdate.copy(expenseTypeId = expenseType)
@@ -103,6 +123,39 @@ class ExpenseWithItemsViewModel : ViewModel() {
 
     fun save() {
         Log.d("ExpenseWithItemsViewModel", "Saving expense with items: ${expenseWithItems.value}")
+    }
+
+    fun validate(): Boolean {
+        val currentItems = _expenseWithItems.value.items
+        val currentExpense = _expenseWithItems.value.expense
+
+        val newItemErrors = mutableMapOf<Int, MutableSet<ItemErrorType>>()
+
+        currentItems.forEach { item ->
+            val errorsForItem = mutableSetOf<ItemErrorType>()
+            if (item.description.isBlank()) {
+                errorsForItem.add(ItemErrorType.DESCRIPTION)
+            }
+            if (item.price <= 0.0) {
+                errorsForItem.add(ItemErrorType.PRICE)
+            }
+            if (item.expenseTypeId == -1) {
+                errorsForItem.add(ItemErrorType.EXPENSE_TYPE)
+            }
+
+            if (errorsForItem.isNotEmpty()) {
+                newItemErrors[item.id] = errorsForItem
+            }
+        }
+
+        val newState = ValidationState(
+            isTitleError = currentExpense.title.isBlank(),
+            isDateError = currentExpense.date == 0L,
+            itemErrors = newItemErrors
+        )
+        _validationState.value = newState
+
+        return !newState.isTitleError && !newState.isDateError && newState.itemErrors.isEmpty()
     }
 }
 

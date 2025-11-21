@@ -7,6 +7,7 @@ import a.two.digital.openbudget.logic.ExpenseTypeViewModel
 import a.two.digital.openbudget.logic.ExpenseTypeViewModelFactory
 import a.two.digital.openbudget.logic.ExpenseWithItemsViewModel
 import a.two.digital.openbudget.logic.ExpenseWithItemsViewModelFactory
+import a.two.digital.openbudget.logic.ItemErrorType
 import a.two.digital.openbudget.ui.theme.OpenBudgetTheme
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -142,12 +143,13 @@ class AddExpenseActivity : ComponentActivity() {
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             val expenseWithItemsState by expenseWithItemsViewModel.expenseWithItems.collectAsState()
+                            val validationState by expenseWithItemsViewModel.validationState.collectAsState()
 
                             Title()
                             TextField(
                                 R.string.title,
                                 R.string.title_placeholder,
-                                false,
+                                validationState.isTitleError,
                                 expenseWithItemsState.expense.title
                             ) { expenseWithItemsViewModel.updateTitle(it) }
                             DateTextField(
@@ -175,22 +177,41 @@ class AddExpenseActivity : ComponentActivity() {
                             Spacer(modifier = Modifier.padding(vertical = 5.dp))
 
                             if (!isDetailed) {
+                                val firstItem = expenseWithItemsState.items.first()
+                                val itemErrors =
+                                    validationState.itemErrors[firstItem.id] ?: emptySet()
                                 ExpenseTypeSelect(
                                     database,
+                                    itemErrors.contains(ItemErrorType.EXPENSE_TYPE),
                                     expenseWithItemsState.items.first().expenseTypeId
-                                ) { expenseWithItemsViewModel.updateExpenseItemExpenseType(0, it) }
+                                ) {
+                                    expenseWithItemsViewModel.updateExpenseItemExpenseType(
+                                        firstItem.id,
+                                        it
+                                    )
+                                }
                                 NumberField(
                                     R.string.price,
                                     R.string.price_placeholder,
-                                    false,
+                                    itemErrors.contains(ItemErrorType.PRICE),
                                     expenseWithItemsState.items.first().price
-                                ) { expenseWithItemsViewModel.updateExpenseItemPrice(0, it) }
+                                ) {
+                                    expenseWithItemsViewModel.updateExpenseItemPrice(
+                                        firstItem.id,
+                                        it
+                                    )
+                                }
                                 TextField(
                                     R.string.description,
                                     R.string.description_placeholder,
-                                    false,
+                                    itemErrors.contains(ItemErrorType.DESCRIPTION),
                                     expenseWithItemsState.items.first().description
-                                ) { expenseWithItemsViewModel.updateExpenseItemDescription(0, it) }
+                                ) {
+                                    expenseWithItemsViewModel.updateExpenseItemDescription(
+                                        firstItem.id,
+                                        it
+                                    )
+                                }
                             } else {
                                 OutlinedCard(
                                     modifier = Modifier
@@ -205,7 +226,12 @@ class AddExpenseActivity : ComponentActivity() {
 
 
                                     LazyColumn {
-                                        items(expenseWithItemsState.items) { item ->
+                                        items(
+                                            expenseWithItemsState.items,
+                                            { item -> item.id }
+                                        ) { item ->
+                                            val itemErrors =
+                                                validationState.itemErrors[item.id] ?: emptySet()
                                             OutlinedCard(
                                                 modifier = Modifier
                                                     .padding(
@@ -224,7 +250,10 @@ class AddExpenseActivity : ComponentActivity() {
                                 }
                             }
 
-                            CreateExpenseButton { expenseWithItemsViewModel.save() }
+                            CreateExpenseButton(
+                                { expenseWithItemsViewModel.save() },
+                                { expenseWithItemsViewModel.validate() }
+                            )
                         }
                     }
                 }
@@ -420,7 +449,12 @@ fun DateTextField(labelText: Int, value: Long, onDateChange: (Long) -> Unit) {
 }
 
 @Composable
-fun ExpenseTypeSelect(database: AppDatabase, value: Int, onValueChange: (Int) -> Unit) {
+fun ExpenseTypeSelect(
+    database: AppDatabase,
+    isError: Boolean,
+    value: Int,
+    onValueChange: (Int) -> Unit
+) {
     val expenseTypeViewModel: ExpenseTypeViewModel = viewModel(
         factory = ExpenseTypeViewModelFactory(database.expenseTypeDao())
     )
@@ -454,6 +488,7 @@ fun ExpenseTypeSelect(database: AppDatabase, value: Int, onValueChange: (Int) ->
                         contentDescription = stringResource(R.string.expense_type_dropdown_arrow)
                     )
                 },
+                isError = isError,
                 readOnly = true
             )
             Box(
@@ -549,7 +584,7 @@ fun ChoiceSwitch(
 }
 
 @Composable
-fun CreateExpenseButton(onSaved: () -> Unit) {
+fun CreateExpenseButton(save: () -> Unit, validate: () -> Boolean) {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.CenterEnd
@@ -559,7 +594,11 @@ fun CreateExpenseButton(onSaved: () -> Unit) {
                 .width(200.dp)
                 .padding(horizontal = 20.dp, vertical = 10.dp),
             onClick = {
-                onSaved()
+                if (validate()) {
+                    save()
+                } else {
+
+                }
             }
         ) {
             Text(stringResource(R.string.add))
