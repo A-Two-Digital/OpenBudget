@@ -27,10 +27,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
@@ -77,6 +80,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -106,13 +111,14 @@ class AddExpenseActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val selectedDate = LocalDate.ofEpochDay(
+        expenseWithItemsViewModel.updateDate(
             intent.getLongExtra(
                 EXTRA_SELECTED_DATE,
                 LocalDate.now().toEpochDay()
             )
         )
         setContent {
+            val focusManager = LocalFocusManager.current
             OpenBudgetTheme {
                 Scaffold(
                     modifier = Modifier.fillMaxSize()
@@ -126,39 +132,65 @@ class AddExpenseActivity : ComponentActivity() {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .verticalScroll(rememberScrollState()),
+                                .verticalScroll(rememberScrollState())
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = { focusManager.clearFocus() }
+                                ),
                             verticalArrangement = Arrangement.Top,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+                            val expenseWithItemsState by expenseWithItemsViewModel.expenseWithItems.collectAsState()
+
                             Title()
-                            TextField(R.string.title, R.string.title_placeholder)
-                            DateTextField(R.string.date, selectedDate)
+                            TextField(
+                                R.string.title,
+                                R.string.title_placeholder,
+                                false,
+                                expenseWithItemsState.expense.title
+                            ) { expenseWithItemsViewModel.updateTitle(it) }
+                            DateTextField(
+                                R.string.date,
+                                expenseWithItemsState.expense.date
+                            ) { expenseWithItemsViewModel.updateDate(it) }
 
                             var isDetailed by remember { mutableStateOf(false) }
                             Spacer(modifier = Modifier.padding(vertical = 5.dp))
                             ChoiceSwitch(
                                 R.string.simple_or_detailed_label,
                                 R.string.simple_or_detailed_description,
-                                checked = isDetailed,
-                                onCheckedChange = { isDetailed = it }
-                            )
+                                isDetailed
+                            ) { isDetailed = it }
                             ChoiceSwitch(
                                 R.string.spent_or_gained_label,
                                 R.string.spent_or_gained_description,
-                                false,
-                                {}
-                            )
+                                expenseWithItemsState.expense.isIncoming
+                            ) { expenseWithItemsViewModel.updateIsIncoming(it) }
                             ChoiceSwitch(
                                 R.string.recurring_label,
                                 R.string.recurring_description,
-                                false,
-                                {})
+                                false
+                            ) {}
                             Spacer(modifier = Modifier.padding(vertical = 5.dp))
 
                             if (!isDetailed) {
-                                ExpenseTypeSelect(database)
-                                TextField(R.string.price, R.string.price_placeholder)
-                                TextField(R.string.description, R.string.description_placeholder)
+                                ExpenseTypeSelect(
+                                    database,
+                                    expenseWithItemsState.items.first().expenseTypeId
+                                ) { expenseWithItemsViewModel.updateExpenseItemExpenseType(0, it) }
+                                NumberField(
+                                    R.string.price,
+                                    R.string.price_placeholder,
+                                    false,
+                                    expenseWithItemsState.items.first().price
+                                ) { expenseWithItemsViewModel.updateExpenseItemPrice(0, it) }
+                                TextField(
+                                    R.string.description,
+                                    R.string.description_placeholder,
+                                    false,
+                                    expenseWithItemsState.items.first().description
+                                ) { expenseWithItemsViewModel.updateExpenseItemDescription(0, it) }
                             } else {
                                 OutlinedCard(
                                     modifier = Modifier
@@ -171,17 +203,28 @@ class AddExpenseActivity : ComponentActivity() {
                                 ) {
                                     ExpenseItemTitle(onClick = { expenseWithItemsViewModel.addExpenseItem() })
 
-                                    val expenseWithItemsState by expenseWithItemsViewModel.expenseWithItems.collectAsState()
 
                                     LazyColumn {
                                         items(expenseWithItemsState.items) { item ->
-                                            Text(text = "Item: 1")
+                                            OutlinedCard(
+                                                modifier = Modifier
+                                                    .padding(
+                                                        horizontal = 10.dp,
+                                                        vertical = 10.dp
+                                                    )
+                                                    .fillMaxWidth()
+                                                    .wrapContentHeight()
+                                            ) {
+//                                                ExpenseTypeSelect(database)
+//                                                TextField(R.string.price, R.string.price_placeholder)
+//                                                TextField(R.string.description, R.string.description_placeholder)
+                                            }
                                         }
                                     }
                                 }
                             }
 
-                            CreateExpenseButton()
+                            CreateExpenseButton { expenseWithItemsViewModel.save() }
                         }
                     }
                 }
@@ -254,20 +297,76 @@ fun ExpenseItemTitle(onClick: () -> Unit) {
 }
 
 @Composable
-fun TextField(labelText: Int, placeholderText: Int) {
+fun TextField(
+    labelText: Int,
+    placeholderText: Int,
+    isError: Boolean,
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    val focusManager = LocalFocusManager.current
+    val textFieldState = rememberTextFieldState(value)
+
     OutlinedTextField(
-        state = rememberTextFieldState(),
+        state = textFieldState,
+        lineLimits = TextFieldLineLimits.SingleLine,
         label = { Text(text = stringResource(labelText)) },
         labelPosition = TextFieldLabelPosition.Above(),
         placeholder = { Text(text = stringResource(placeholderText)) },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 10.dp)
+            .padding(horizontal = 20.dp, vertical = 10.dp),
+        inputTransformation = {
+            onValueChange(textFieldState.text.toString())
+        },
+        isError = isError,
+        keyboardOptions = KeyboardOptions.Default.copy(
+            imeAction = ImeAction.Done
+        ),
+        onKeyboardAction = { focusManager.clearFocus() }
     )
 }
 
 @Composable
-fun DateTextField(labelText: Int, selectedDate: LocalDate) {
+fun NumberField(
+    labelText: Int,
+    placeholderText: Int,
+    isError: Boolean,
+    value: Double,
+    onValueChange: (Double) -> Unit
+) {
+    val textFieldState =
+        rememberTextFieldState(if (value.toString() == "0.0") "" else value.toString())
+    val focusManager = LocalFocusManager.current
+    val localError = isError || (textFieldState.text.isNotBlank() && textFieldState.text.toString()
+        .toDoubleOrNull() == null)
+
+    OutlinedTextField(
+        state = textFieldState,
+        label = { Text(text = stringResource(labelText)) },
+        labelPosition = TextFieldLabelPosition.Above(),
+        placeholder = { Text(text = stringResource(placeholderText)) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 10.dp),
+        inputTransformation = {
+            if (!localError && textFieldState.text.isNotBlank()) {
+                onValueChange(textFieldState.text.toString().toDouble())
+            }
+        },
+        isError = localError,
+        keyboardOptions = KeyboardOptions.Default.copy(
+            keyboardType = KeyboardType.Decimal,
+            imeAction = ImeAction.Done
+        ),
+        onKeyboardAction = { focusManager.clearFocus() }
+    )
+}
+
+@Composable
+fun DateTextField(labelText: Int, value: Long, onDateChange: (Long) -> Unit) {
+    LocalFocusManager.current.clearFocus()
+    val selectedDate = LocalDate.ofEpochDay(value)
     var showModal by remember { mutableStateOf(false) }
     val textFieldState =
         rememberTextFieldState(selectedDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)))
@@ -312,6 +411,7 @@ fun DateTextField(labelText: Int, selectedDate: LocalDate) {
                             )
                         )
                     )
+                    onDateChange(newDate.toEpochDay())
                 }
             },
             onDismiss = { showModal = false }
@@ -320,13 +420,14 @@ fun DateTextField(labelText: Int, selectedDate: LocalDate) {
 }
 
 @Composable
-fun ExpenseTypeSelect(database: AppDatabase) {
+fun ExpenseTypeSelect(database: AppDatabase, value: Int, onValueChange: (Int) -> Unit) {
     val expenseTypeViewModel: ExpenseTypeViewModel = viewModel(
         factory = ExpenseTypeViewModelFactory(database.expenseTypeDao())
     )
-    val textFieldState = rememberTextFieldState("")
-    var expenseTypesExpanded by remember { mutableStateOf(false) }
     val expenseTypes by expenseTypeViewModel.expenseTypes.collectAsState()
+    val textFieldState =
+        rememberTextFieldState(if (value == -1) "" else expenseTypes.find { expenseType -> expenseType.id == value }!!.name)
+    var expenseTypesExpanded by remember { mutableStateOf(false) }
     var selectedExpenseTypeSize by remember { mutableStateOf(Size.Zero) }
     val icon =
         if (expenseTypesExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown
@@ -382,6 +483,7 @@ fun ExpenseTypeSelect(database: AppDatabase) {
                     text = { Text(text = expenseType.name) },
                     onClick = {
                         textFieldState.setTextAndPlaceCursorAtEnd(expenseType.name)
+                        onValueChange(expenseType.id)
                         expenseTypesExpanded = false
                     }
                 )
@@ -398,6 +500,7 @@ fun ChoiceSwitch(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
+    LocalFocusManager.current.clearFocus()
     val tooltipState = rememberTooltipState(isPersistent = true)
     val coroutineScope = rememberCoroutineScope()
 
@@ -446,7 +549,7 @@ fun ChoiceSwitch(
 }
 
 @Composable
-fun CreateExpenseButton() {
+fun CreateExpenseButton(onSaved: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.CenterEnd
@@ -455,7 +558,9 @@ fun CreateExpenseButton() {
             modifier = Modifier
                 .width(200.dp)
                 .padding(horizontal = 20.dp, vertical = 10.dp),
-            onClick = {}
+            onClick = {
+                onSaved()
+            }
         ) {
             Text(stringResource(R.string.add))
         }

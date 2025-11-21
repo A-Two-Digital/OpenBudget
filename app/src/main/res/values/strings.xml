@@ -15,7 +15,7 @@
     <string name="title">Location or title</string>
     <string name="title_placeholder">e.g., Store Name, Restaurant, Service</string>
     <string name="date_description">Date of the expense</string>
-    <string name="price_placeholder">e.g., $200</string>
+    <string name="price_placeholder">e.g., 199.99</string>
     <string name="description">Description (optional)</string>
     <string name="description_placeholder">e.g. item names</string>
     <string name="expense_type_placeholder">e.g. Groceries, Rent, Entertainment</string>
