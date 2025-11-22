@@ -17,7 +17,6 @@ data class ValidationState(
 )
 
 enum class ItemErrorType {
-    DESCRIPTION,
     PRICE,
     EXPENSE_TYPE
 }
@@ -63,9 +62,11 @@ class ExpenseWithItemsViewModel : ViewModel() {
         }
     }
 
-    fun updateTitle(title: String) {
+    fun updateTitle(title: CharSequence) {
+        val titleString = title.toString()
+
         _expenseWithItems.update {
-            it.copy(expense = it.expense.copy(title = title))
+            it.copy(expense = it.expense.copy(title = titleString))
         }
 
         _validationState.update {
@@ -85,36 +86,36 @@ class ExpenseWithItemsViewModel : ViewModel() {
         }
     }
 
-    fun updateExpenseItemDescription(id: Int, description: String) {
+    fun updateExpenseItemDescription(id: Int, description: CharSequence) {
+        val descriptionString = description.toString()
+
         _expenseWithItems.update {
             val newItems = it.items.toMutableList()
             val index = newItems.indexOfFirst { item -> item.id == id }
             if (index in newItems.indices) {
                 val itemToUpdate = newItems[index]
-                newItems[index] = itemToUpdate.copy(description = description)
+                newItems[index] = itemToUpdate.copy(description = descriptionString)
             }
 
             it.copy(items = newItems)
-        }
-
-        if (description.isNotBlank()) {
-            clearItemError(id, ItemErrorType.DESCRIPTION)
         }
     }
 
-    fun updateExpenseItemPrice(id: Int, price: Double) {
+    fun updateExpenseItemPrice(id: Int, price: CharSequence) {
+
+
         _expenseWithItems.update {
             val newItems = it.items.toMutableList()
             val index = newItems.indexOfFirst { item -> item.id == id }
             if (index in newItems.indices) {
                 val itemToUpdate = newItems[index]
-                newItems[index] = itemToUpdate.copy(price = price)
+                newItems[index] = itemToUpdate.copy(price = 0.0)
             }
 
             it.copy(items = newItems)
         }
 
-        if (price > 0.0) {
+        if (1.0 > 0.0) {
             clearItemError(id, ItemErrorType.PRICE)
         }
     }
@@ -166,9 +167,6 @@ class ExpenseWithItemsViewModel : ViewModel() {
 
         currentItems.forEach { item ->
             val errorsForItem = mutableSetOf<ItemErrorType>()
-            if (item.description.isBlank()) {
-                errorsForItem.add(ItemErrorType.DESCRIPTION)
-            }
             if (item.price <= 0.0) {
                 errorsForItem.add(ItemErrorType.PRICE)
             }
