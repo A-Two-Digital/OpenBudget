@@ -13,7 +13,6 @@ import java.util.UUID
 
 data class ValidationState(
     val isTitleError: Boolean = false,
-    val isDateError: Boolean = false,
     val itemErrors: Map<Int, Set<ItemErrorType>> = emptyMap()
 )
 
@@ -68,6 +67,10 @@ class ExpenseWithItemsViewModel : ViewModel() {
         _expenseWithItems.update {
             it.copy(expense = it.expense.copy(title = title))
         }
+
+        _validationState.update {
+            it.copy(isTitleError = title.isBlank())
+        }
     }
 
     fun updateDate(date: Long) {
@@ -93,6 +96,10 @@ class ExpenseWithItemsViewModel : ViewModel() {
 
             it.copy(items = newItems)
         }
+
+        if (description.isNotBlank()) {
+            clearItemError(id, ItemErrorType.DESCRIPTION)
+        }
     }
 
     fun updateExpenseItemPrice(id: Int, price: Double) {
@@ -106,6 +113,10 @@ class ExpenseWithItemsViewModel : ViewModel() {
 
             it.copy(items = newItems)
         }
+
+        if (price > 0.0) {
+            clearItemError(id, ItemErrorType.PRICE)
+        }
     }
 
     fun updateExpenseItemExpenseType(id: Int, expenseType: Int) {
@@ -118,6 +129,28 @@ class ExpenseWithItemsViewModel : ViewModel() {
             }
 
             it.copy(items = newItems)
+        }
+
+        if (expenseType != -1) {
+            clearItemError(id, ItemErrorType.EXPENSE_TYPE)
+        }
+    }
+
+    fun clearItemError(id: Int, errorType: ItemErrorType) {
+        _validationState.update { currentState ->
+            val currentItemErrors = currentState.itemErrors[id] ?: return@update currentState
+
+            val newItemErrors = currentItemErrors.toMutableSet()
+            newItemErrors.remove(errorType)
+
+            val newMap = currentState.itemErrors.toMutableMap()
+            if (newItemErrors.isEmpty()) {
+                newMap.remove(id)
+            } else {
+                newMap[id] = newItemErrors
+            }
+
+            currentState.copy(itemErrors = newMap)
         }
     }
 
@@ -150,12 +183,11 @@ class ExpenseWithItemsViewModel : ViewModel() {
 
         val newState = ValidationState(
             isTitleError = currentExpense.title.isBlank(),
-            isDateError = currentExpense.date == 0L,
             itemErrors = newItemErrors
         )
         _validationState.value = newState
 
-        return !newState.isTitleError && !newState.isDateError && newState.itemErrors.isEmpty()
+        return !newState.isTitleError && newState.itemErrors.isEmpty()
     }
 }
 
