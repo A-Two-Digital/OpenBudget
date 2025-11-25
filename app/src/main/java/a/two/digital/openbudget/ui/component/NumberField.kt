@@ -1,4 +1,4 @@
-package a.two.digital.openbudget.ui.components
+package a.two.digital.openbudget.ui.component
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding

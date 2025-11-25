@@ -6,7 +6,7 @@ import a.two.digital.openbudget.logic.ExpenseTypeViewModel
 import a.two.digital.openbudget.logic.ExpenseTypeViewModelFactory
 import a.two.digital.openbudget.logic.ExpenseWithItemsViewModel
 import a.two.digital.openbudget.logic.ExpenseWithItemsViewModelFactory
-import a.two.digital.openbudget.ui.addexpense.AddExpenseScreen
+import a.two.digital.openbudget.ui.screen.addexpense.AddExpenseScreen
 import a.two.digital.openbudget.ui.theme.OpenBudgetTheme
 import android.os.Bundle
 import androidx.activity.ComponentActivity

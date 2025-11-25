@@ -1,4 +1,4 @@
-package a.two.digital.openbudget.ui.addexpense.components
+package a.two.digital.openbudget.ui.screen.addexpense.component
 
 import a.two.digital.openbudget.R
 import a.two.digital.openbudget.data.entity.ExpenseItem
@@ -6,9 +6,9 @@ import a.two.digital.openbudget.logic.ExpenseTypeViewModel
 import a.two.digital.openbudget.logic.ExpenseWithItemsViewModel
 import a.two.digital.openbudget.logic.ItemErrorType
 import a.two.digital.openbudget.logic.ValidationState
-import a.two.digital.openbudget.ui.components.ExpenseTypeSelect
-import a.two.digital.openbudget.ui.components.NumberField
-import a.two.digital.openbudget.ui.components.TextField
+import a.two.digital.openbudget.ui.component.ExpenseTypeSelect
+import a.two.digital.openbudget.ui.component.NumberField
+import a.two.digital.openbudget.ui.component.TextField
 import androidx.compose.runtime.Composable
 
 @Composable

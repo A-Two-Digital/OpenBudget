@@ -1,15 +1,15 @@
-package a.two.digital.openbudget.ui.addexpense
+package a.two.digital.openbudget.ui.screen.addexpense
 
 import a.two.digital.openbudget.R
 import a.two.digital.openbudget.logic.ExpenseTypeViewModel
 import a.two.digital.openbudget.logic.ExpenseWithItemsViewModel
-import a.two.digital.openbudget.ui.addexpense.components.AddExpenseButton
-import a.two.digital.openbudget.ui.addexpense.components.AddExpenseTitle
-import a.two.digital.openbudget.ui.addexpense.components.DetailedItemEditor
-import a.two.digital.openbudget.ui.addexpense.components.SimpleItemEditor
-import a.two.digital.openbudget.ui.components.ChoiceSwitch
-import a.two.digital.openbudget.ui.components.DateTextField
-import a.two.digital.openbudget.ui.components.TextField
+import a.two.digital.openbudget.ui.component.ChoiceSwitch
+import a.two.digital.openbudget.ui.component.DateTextField
+import a.two.digital.openbudget.ui.component.TextField
+import a.two.digital.openbudget.ui.screen.addexpense.component.AddExpenseButton
+import a.two.digital.openbudget.ui.screen.addexpense.component.AddExpenseTitle
+import a.two.digital.openbudget.ui.screen.addexpense.component.DetailedItemEditor
+import a.two.digital.openbudget.ui.screen.addexpense.component.SimpleItemEditor
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement

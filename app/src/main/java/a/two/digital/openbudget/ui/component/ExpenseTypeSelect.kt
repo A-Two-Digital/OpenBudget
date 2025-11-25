@@ -1,4 +1,4 @@
-package a.two.digital.openbudget.ui.components
+package a.two.digital.openbudget.ui.component
 
 import a.two.digital.openbudget.R
 import a.two.digital.openbudget.logic.ExpenseTypeViewModel

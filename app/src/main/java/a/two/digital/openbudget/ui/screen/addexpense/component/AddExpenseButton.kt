@@ -1,4 +1,4 @@
-package a.two.digital.openbudget.ui.addexpense.components
+package a.two.digital.openbudget.ui.screen.addexpense.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
