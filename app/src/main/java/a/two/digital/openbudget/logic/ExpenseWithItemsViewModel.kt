@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.update
 import java.util.UUID
 
 data class ValidationState(
+    val startChecking: Boolean = false,
     val isTitleError: Boolean = false,
     val itemErrors: Map<Int, Set<ItemErrorType>> = emptyMap()
 )
@@ -28,7 +29,8 @@ class ExpenseWithItemsViewModel : ViewModel() {
             expense = Expense(
                 title = "",
                 date = 0,
-                isIncoming = false
+                isIncoming = false,
+                isRecurring = false
             ),
             items = mutableListOf(
                 ExpenseItem(
@@ -69,8 +71,10 @@ class ExpenseWithItemsViewModel : ViewModel() {
             it.copy(expense = it.expense.copy(title = titleString))
         }
 
-        _validationState.update {
-            it.copy(isTitleError = title.isBlank())
+        if (_validationState.value.startChecking) {
+            _validationState.update {
+                it.copy(isTitleError = title.isBlank())
+            }
         }
     }
 
@@ -83,6 +87,12 @@ class ExpenseWithItemsViewModel : ViewModel() {
     fun updateIsIncoming(isIncoming: Boolean) {
         _expenseWithItems.update {
             it.copy(expense = it.expense.copy(isIncoming = isIncoming))
+        }
+    }
+
+    fun updateIsRecurring(isRecurring: Boolean) {
+        _expenseWithItems.update {
+            it.copy(expense = it.expense.copy(isRecurring = isRecurring))
         }
     }
 
@@ -102,21 +112,30 @@ class ExpenseWithItemsViewModel : ViewModel() {
     }
 
     fun updateExpenseItemPrice(id: Int, price: CharSequence) {
-
-
+        val newPrice = price.toString().toDoubleOrNull() ?: 0.0
         _expenseWithItems.update {
             val newItems = it.items.toMutableList()
             val index = newItems.indexOfFirst { item -> item.id == id }
             if (index in newItems.indices) {
                 val itemToUpdate = newItems[index]
-                newItems[index] = itemToUpdate.copy(price = 0.0)
+                newItems[index] = itemToUpdate.copy(price = newPrice)
             }
 
             it.copy(items = newItems)
         }
 
-        if (1.0 > 0.0) {
-            clearItemError(id, ItemErrorType.PRICE)
+        if (_validationState.value.startChecking) {
+            if (newPrice <= 0.0) {
+                _validationState.update { currentState ->
+                    val newMap = currentState.itemErrors.toMutableMap()
+                    val currentErrors = newMap[id]?.toMutableSet() ?: mutableSetOf()
+                    currentErrors.add(ItemErrorType.PRICE)
+                    newMap[id] = currentErrors
+                    currentState.copy(itemErrors = newMap)
+                }
+            } else {
+                clearItemError(id, ItemErrorType.PRICE)
+            }
         }
     }
 
@@ -132,8 +151,18 @@ class ExpenseWithItemsViewModel : ViewModel() {
             it.copy(items = newItems)
         }
 
-        if (expenseType != -1) {
-            clearItemError(id, ItemErrorType.EXPENSE_TYPE)
+        if (_validationState.value.startChecking) {
+            if (expenseType == -1) {
+                _validationState.update { currentState ->
+                    val newMap = currentState.itemErrors.toMutableMap()
+                    val currentErrors = newMap[id]?.toMutableSet() ?: mutableSetOf()
+                    currentErrors.add(ItemErrorType.EXPENSE_TYPE)
+                    newMap[id] = currentErrors
+                    currentState.copy(itemErrors = newMap)
+                }
+            } else {
+                clearItemError(id, ItemErrorType.EXPENSE_TYPE)
+            }
         }
     }
 
@@ -180,6 +209,7 @@ class ExpenseWithItemsViewModel : ViewModel() {
         }
 
         val newState = ValidationState(
+            startChecking = true,
             isTitleError = currentExpense.title.isBlank(),
             itemErrors = newItemErrors
         )

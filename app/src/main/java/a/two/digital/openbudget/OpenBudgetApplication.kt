@@ -16,7 +16,7 @@ class OpenBudgetApplication : Application() {
             this,
             AppDatabase::class.java,
             "open-budget"
-        ).addCallback(populateCallback).build()
+        ).addCallback(populateCallback).fallbackToDestructiveMigration(true).build()
     }
 
     private val populateCallback = object : RoomDatabase.Callback() {

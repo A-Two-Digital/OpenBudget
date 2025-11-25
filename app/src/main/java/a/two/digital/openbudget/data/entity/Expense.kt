@@ -9,5 +9,6 @@ data class Expense(
     val id: Int = 0,
     val title: String,
     val date: Long,
-    val isIncoming: Boolean
+    val isIncoming: Boolean,
+    val isRecurring: Boolean
 )

@@ -44,7 +44,13 @@ fun AddExpenseScreen(
     val validation by expenseWithItemsViewModel.validationState.collectAsState()
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = { focusManager.clearFocus() }
+            ),
         topBar = { AddExpenseTitle { onClose() } }
     ) { innerPadding ->
         Box(
@@ -56,19 +62,14 @@ fun AddExpenseScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = { focusManager.clearFocus() }
-                    ),
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 TextField(
                     R.string.title,
                     R.string.title_placeholder,
-                    validation.isTitleError,
+                    validation.startChecking && validation.isTitleError,
                     state.expense.title
                 ) { expenseWithItemsViewModel.updateTitle(it) }
                 DateTextField(
@@ -91,8 +92,8 @@ fun AddExpenseScreen(
                 ChoiceSwitch(
                     R.string.recurring_label,
                     R.string.recurring_description,
-                    false
-                ) {}
+                    state.expense.isRecurring
+                ) { expenseWithItemsViewModel.updateIsRecurring(it) }
                 Spacer(modifier = Modifier.padding(vertical = 5.dp))
 
                 if (!isDetailed) {

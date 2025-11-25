@@ -9,11 +9,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldLabelPosition
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun TextField(
@@ -26,6 +29,12 @@ fun TextField(
     val focusManager = LocalFocusManager.current
     val textFieldState = rememberTextFieldState(value)
 
+    LaunchedEffect(textFieldState) {
+        snapshotFlow { textFieldState.text }.collectLatest {
+            onValueChange(it)
+        }
+    }
+
     OutlinedTextField(
         state = textFieldState,
         lineLimits = TextFieldLineLimits.SingleLine,
@@ -35,9 +44,6 @@ fun TextField(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 10.dp),
-        inputTransformation = {
-            onValueChange(textFieldState.text)
-        },
         isError = isError,
         keyboardOptions = KeyboardOptions.Default.copy(
             imeAction = ImeAction.Done
