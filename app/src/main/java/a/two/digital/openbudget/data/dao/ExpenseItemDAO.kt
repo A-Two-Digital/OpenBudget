@@ -8,7 +8,10 @@ import androidx.room.Insert
 @Dao
 interface ExpenseItemDAO {
     @Insert
-    fun insert(expenseItem: ExpenseItem)
+    suspend fun insert(expenseItem: ExpenseItem)
+
+    @Insert
+    suspend fun insert(expenseItems: List<ExpenseItem>)
 
     @Delete
     fun delete(expenseItem: ExpenseItem)

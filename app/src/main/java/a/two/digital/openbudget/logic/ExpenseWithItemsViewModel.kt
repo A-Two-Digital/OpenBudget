@@ -1,20 +1,23 @@
 package a.two.digital.openbudget.logic
 
+import a.two.digital.openbudget.data.dao.ExpenseDAO
+import a.two.digital.openbudget.data.dao.ExpenseItemDAO
 import a.two.digital.openbudget.data.entity.Expense
 import a.two.digital.openbudget.data.entity.ExpenseItem
 import a.two.digital.openbudget.logic.model.ExpenseWithItems
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 data class ValidationState(
     val startChecking: Boolean = false,
     val isTitleError: Boolean = false,
-    val itemErrors: Map<Int, Set<ItemErrorType>> = emptyMap()
+    val itemErrors: Map<Long, Set<ItemErrorType>> = emptyMap()
 )
 
 enum class ItemErrorType {
@@ -22,8 +25,10 @@ enum class ItemErrorType {
     EXPENSE_TYPE
 }
 
-class ExpenseWithItemsViewModel : ViewModel() {
-
+class ExpenseWithItemsViewModel(
+    private val expenseDAO: ExpenseDAO,
+    private val expenseItemDAO: ExpenseItemDAO
+) : ViewModel() {
     private val _expenseWithItems = MutableStateFlow(
         ExpenseWithItems(
             expense = Expense(
@@ -34,7 +39,7 @@ class ExpenseWithItemsViewModel : ViewModel() {
             ),
             items = mutableListOf(
                 ExpenseItem(
-                    id = UUID.randomUUID().hashCode(),
+                    id = UUID.randomUUID().hashCode().toLong(),
                     description = "",
                     price = 0.0,
                     expenseTypeId = -1,
@@ -53,7 +58,7 @@ class ExpenseWithItemsViewModel : ViewModel() {
             val newItems = currentState.items.toMutableList()
             newItems.add(
                 ExpenseItem(
-                    id = UUID.randomUUID().hashCode(),
+                    id = UUID.randomUUID().hashCode().toLong(),
                     description = "",
                     price = 0.0,
                     expenseTypeId = -1,
@@ -96,7 +101,7 @@ class ExpenseWithItemsViewModel : ViewModel() {
         }
     }
 
-    fun updateExpenseItemDescription(id: Int, description: CharSequence) {
+    fun updateExpenseItemDescription(id: Long, description: CharSequence) {
         val descriptionString = description.toString()
 
         _expenseWithItems.update {
@@ -111,7 +116,7 @@ class ExpenseWithItemsViewModel : ViewModel() {
         }
     }
 
-    fun updateExpenseItemPrice(id: Int, price: CharSequence) {
+    fun updateExpenseItemPrice(id: Long, price: CharSequence) {
         val newPrice = price.toString().toDoubleOrNull() ?: 0.0
         _expenseWithItems.update {
             val newItems = it.items.toMutableList()
@@ -139,7 +144,7 @@ class ExpenseWithItemsViewModel : ViewModel() {
         }
     }
 
-    fun updateExpenseItemExpenseType(id: Int, expenseType: Int) {
+    fun updateExpenseItemExpenseType(id: Long, expenseType: Int) {
         _expenseWithItems.update {
             val newItems = it.items.toMutableList()
             val index = newItems.indexOfFirst { item -> item.id == id }
@@ -166,7 +171,7 @@ class ExpenseWithItemsViewModel : ViewModel() {
         }
     }
 
-    fun clearItemError(id: Int, errorType: ItemErrorType) {
+    fun clearItemError(id: Long, errorType: ItemErrorType) {
         _validationState.update { currentState ->
             val currentItemErrors = currentState.itemErrors[id] ?: return@update currentState
 
@@ -185,14 +190,20 @@ class ExpenseWithItemsViewModel : ViewModel() {
     }
 
     fun save() {
-        Log.d("ExpenseWithItemsViewModel", "Saving expense with items: ${expenseWithItems.value}")
+        viewModelScope.launch {
+            val expenseId = expenseDAO.insert(_expenseWithItems.value.expense)
+            val itemsToSave = _expenseWithItems.value.items.map {
+                it.copy(id = 0, expenseId = expenseId)
+            }
+            expenseItemDAO.insert(itemsToSave)
+        }
     }
 
     fun validate(): Boolean {
         val currentItems = _expenseWithItems.value.items
         val currentExpense = _expenseWithItems.value.expense
 
-        val newItemErrors = mutableMapOf<Int, MutableSet<ItemErrorType>>()
+        val newItemErrors = mutableMapOf<Long, MutableSet<ItemErrorType>>()
 
         currentItems.forEach { item ->
             val errorsForItem = mutableSetOf<ItemErrorType>()
@@ -219,11 +230,14 @@ class ExpenseWithItemsViewModel : ViewModel() {
     }
 }
 
-class ExpenseWithItemsViewModelFactory : ViewModelProvider.Factory {
+class ExpenseWithItemsViewModelFactory(
+    private val expenseDAO: ExpenseDAO,
+    private val expenseItemDAO: ExpenseItemDAO
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ExpenseWithItemsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ExpenseWithItemsViewModel() as T
+            return ExpenseWithItemsViewModel(expenseDAO, expenseItemDAO) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -20,9 +20,9 @@ import androidx.room.PrimaryKey
 )
 data class ExpenseItem(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    val id: Long = 0,
     val description: String,
     val price: Double,
     val expenseTypeId: Int,
-    val expenseId: Int
+    val expenseId: Long
 )

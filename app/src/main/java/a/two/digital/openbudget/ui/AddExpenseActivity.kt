@@ -26,7 +26,7 @@ class AddExpenseActivity : ComponentActivity() {
     }
 
     private val expenseWithItemsViewModel: ExpenseWithItemsViewModel by viewModels {
-        ExpenseWithItemsViewModelFactory()
+        ExpenseWithItemsViewModelFactory(database.expenseDao(), database.expenseItemDao())
     }
 
     private val expenseTypeViewModel: ExpenseTypeViewModel by viewModels {

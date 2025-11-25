@@ -20,7 +20,7 @@ interface ExpenseDAO {
     fun getAllByDate(startOfDay: Long, endOfDay: Long): Flow<List<ExpenseWithItems>>
 
     @Insert
-    fun insert(expense: Expense)
+    suspend fun insert(expense: Expense): Long
 
     @Delete
     fun delete(expense: Expense)

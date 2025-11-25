@@ -13,7 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun AddExpenseButton(text: Int, save: () -> Unit, validate: () -> Boolean) {
+fun AddExpenseButton(text: Int, save: () -> Unit, validate: () -> Boolean, onClose: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.CenterEnd
@@ -25,8 +25,7 @@ fun AddExpenseButton(text: Int, save: () -> Unit, validate: () -> Boolean) {
             onClick = {
                 if (validate()) {
                     save()
-                } else {
-
+                    onClose()
                 }
             }
         ) {

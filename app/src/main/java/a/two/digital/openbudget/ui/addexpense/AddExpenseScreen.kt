@@ -115,7 +115,8 @@ fun AddExpenseScreen(
                 AddExpenseButton(
                     R.string.add,
                     { expenseWithItemsViewModel.save() },
-                    { expenseWithItemsViewModel.validate() }
+                    { expenseWithItemsViewModel.validate() },
+                    { onClose() }
                 )
             }
         }
