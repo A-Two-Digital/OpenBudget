@@ -1,7 +1,7 @@
 package a.two.digital.openbudget.ui.component
 
 import a.two.digital.openbudget.R
-import a.two.digital.openbudget.ui.DatePickerModal
+import a.two.digital.openbudget.ui.screen.expense.component.DatePickerModal
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
