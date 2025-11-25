@@ -10,7 +10,6 @@ import a.two.digital.openbudget.ui.components.ExpenseTypeSelect
 import a.two.digital.openbudget.ui.components.NumberField
 import a.two.digital.openbudget.ui.components.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 
 @Composable
 fun SimpleItemEditor(
@@ -34,7 +33,7 @@ fun SimpleItemEditor(
         R.string.price,
         R.string.price_placeholder,
         itemErrors.contains(ItemErrorType.PRICE),
-        expenseWithItemsViewModel.expenseWithItems.collectAsState().value.items.first().price,
+        state.price,
     ) {
         expenseWithItemsViewModel.updateExpenseItemPrice(
             state.id,

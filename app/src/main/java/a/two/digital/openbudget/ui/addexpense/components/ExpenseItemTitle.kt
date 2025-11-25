@@ -27,7 +27,6 @@ fun ExpenseItemTitle(onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 10.dp)
     ) {
         Spacer(modifier = Modifier.size(30.dp + 30.dp))
         Text(

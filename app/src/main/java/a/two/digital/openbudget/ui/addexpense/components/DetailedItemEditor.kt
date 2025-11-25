@@ -1,15 +1,20 @@
 package a.two.digital.openbudget.ui.addexpense.components
 
+import a.two.digital.openbudget.R
 import a.two.digital.openbudget.data.entity.ExpenseItem
 import a.two.digital.openbudget.logic.ExpenseTypeViewModel
 import a.two.digital.openbudget.logic.ExpenseWithItemsViewModel
+import a.two.digital.openbudget.logic.ItemErrorType
 import a.two.digital.openbudget.logic.ValidationState
+import a.two.digital.openbudget.ui.components.ExpenseTypeSelect
+import a.two.digital.openbudget.ui.components.NumberField
+import a.two.digital.openbudget.ui.components.TextField
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -29,31 +34,54 @@ fun DetailedItemEditor(
                 vertical = 10.dp
             )
             .fillMaxWidth()
-            .height(350.dp)
+            .heightIn(min = 350.dp, max = 500.dp)
     ) {
         ExpenseItemTitle(onClick = { expenseWithItemsViewModel.addExpenseItem() })
-
 
         LazyColumn {
             items(
                 state,
                 { item -> item.id }
             ) { item ->
-                val itemErrors =
-                    validation.itemErrors[item.id] ?: emptySet()
-                OutlinedCard(
-                    modifier = Modifier
-                        .padding(
-                            horizontal = 10.dp,
-                            vertical = 10.dp
-                        )
-                        .fillMaxWidth()
-                        .wrapContentHeight()
+                val itemErrors = validation.itemErrors[item.id] ?: emptySet()
+
+                ExpenseTypeSelect(
+                    expenseTypeViewModel,
+                    itemErrors.contains(ItemErrorType.EXPENSE_TYPE),
+                    item.expenseTypeId
                 ) {
-//                                                ExpenseTypeSelect(database)
-//                                                TextField(R.string.price, R.string.price_placeholder)
-//                                                TextField(R.string.description, R.string.description_placeholder)
+                    expenseWithItemsViewModel.updateExpenseItemExpenseType(
+                        item.id,
+                        it
+                    )
                 }
+                NumberField(
+                    R.string.price,
+                    R.string.price_placeholder,
+                    itemErrors.contains(ItemErrorType.PRICE),
+                    item.price,
+                ) {
+                    expenseWithItemsViewModel.updateExpenseItemPrice(
+                        item.id,
+                        it
+                    )
+                }
+                TextField(
+                    R.string.description,
+                    R.string.description_placeholder,
+                    false,
+                    item.description
+                ) {
+                    expenseWithItemsViewModel.updateExpenseItemDescription(
+                        item.id,
+                        it
+                    )
+                }
+
+                HorizontalDivider(
+                    thickness = 2.dp,
+                    modifier = Modifier.padding(horizontal = 10.dp)
+                )
             }
         }
     }
