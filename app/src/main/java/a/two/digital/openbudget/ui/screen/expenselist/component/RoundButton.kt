@@ -1,4 +1,4 @@
-package a.two.digital.openbudget.ui.screen.expense.component
+package a.two.digital.openbudget.ui.screen.expenselist.component
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.size

@@ -17,7 +17,7 @@
             android:label="@string/title_activity_add_expense"
             android:theme="@style/Theme.OpenBudget" />
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".ui.ExpenseListActivity"
             android:exported="true"
             android:theme="@style/Theme.OpenBudget">
             <intent-filter>

@@ -2,8 +2,8 @@ package a.two.digital.openbudget.ui.screen.addexpense.component
 
 import a.two.digital.openbudget.R
 import a.two.digital.openbudget.data.entity.ExpenseItem
+import a.two.digital.openbudget.logic.AddExpenseViewModel
 import a.two.digital.openbudget.logic.ExpenseTypeViewModel
-import a.two.digital.openbudget.logic.ExpenseWithItemsViewModel
 import a.two.digital.openbudget.logic.ItemErrorType
 import a.two.digital.openbudget.logic.ValidationState
 import a.two.digital.openbudget.ui.component.ExpenseTypeSelect
@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 fun DetailedItemEditor(
     state: MutableList<ExpenseItem>,
     validation: ValidationState,
-    expenseWithItemsViewModel: ExpenseWithItemsViewModel,
+    addExpenseViewModel: AddExpenseViewModel,
     expenseTypeViewModel: ExpenseTypeViewModel
 ) {
     OutlinedCard(
@@ -36,7 +36,7 @@ fun DetailedItemEditor(
             .fillMaxWidth()
             .heightIn(min = 350.dp, max = 500.dp)
     ) {
-        ExpenseItemTitle(onClick = { expenseWithItemsViewModel.addExpenseItem() })
+        ExpenseItemTitle(onClick = { addExpenseViewModel.addExpenseItem() })
 
         LazyColumn {
             items(
@@ -50,7 +50,7 @@ fun DetailedItemEditor(
                     itemErrors.contains(ItemErrorType.EXPENSE_TYPE),
                     item.expenseTypeId
                 ) {
-                    expenseWithItemsViewModel.updateExpenseItemExpenseType(
+                    addExpenseViewModel.updateExpenseItemExpenseType(
                         item.id,
                         it
                     )
@@ -61,7 +61,7 @@ fun DetailedItemEditor(
                     itemErrors.contains(ItemErrorType.PRICE),
                     item.price,
                 ) {
-                    expenseWithItemsViewModel.updateExpenseItemPrice(
+                    addExpenseViewModel.updateExpenseItemPrice(
                         item.id,
                         it
                     )
@@ -72,7 +72,7 @@ fun DetailedItemEditor(
                     false,
                     item.description
                 ) {
-                    expenseWithItemsViewModel.updateExpenseItemDescription(
+                    addExpenseViewModel.updateExpenseItemDescription(
                         item.id,
                         it
                     )

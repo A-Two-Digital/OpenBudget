@@ -1,8 +1,8 @@
 package a.two.digital.openbudget.ui.screen.addexpense
 
 import a.two.digital.openbudget.R
+import a.two.digital.openbudget.logic.AddExpenseViewModel
 import a.two.digital.openbudget.logic.ExpenseTypeViewModel
-import a.two.digital.openbudget.logic.ExpenseWithItemsViewModel
 import a.two.digital.openbudget.ui.component.ChoiceSwitch
 import a.two.digital.openbudget.ui.component.DateTextField
 import a.two.digital.openbudget.ui.component.TextField
@@ -35,13 +35,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun AddExpenseScreen(
-    expenseWithItemsViewModel: ExpenseWithItemsViewModel,
+    addExpenseViewModel: AddExpenseViewModel,
     expenseTypeViewModel: ExpenseTypeViewModel,
     onClose: () -> Unit
 ) {
     val focusManager = LocalFocusManager.current
-    val state by expenseWithItemsViewModel.expenseWithItems.collectAsState()
-    val validation by expenseWithItemsViewModel.validationState.collectAsState()
+    val state by addExpenseViewModel.expenseWithItems.collectAsState()
+    val validation by addExpenseViewModel.validationState.collectAsState()
 
     Scaffold(
         modifier = Modifier
@@ -71,11 +71,11 @@ fun AddExpenseScreen(
                     R.string.title_placeholder,
                     validation.startChecking && validation.isTitleError,
                     state.expense.title
-                ) { expenseWithItemsViewModel.updateTitle(it) }
+                ) { addExpenseViewModel.updateTitle(it) }
                 DateTextField(
                     R.string.date,
                     state.expense.date
-                ) { expenseWithItemsViewModel.updateDate(it) }
+                ) { addExpenseViewModel.updateDate(it) }
 
                 var isDetailed by rememberSaveable { mutableStateOf(false) }
                 Spacer(modifier = Modifier.padding(vertical = 5.dp))
@@ -88,34 +88,34 @@ fun AddExpenseScreen(
                     R.string.spent_or_gained_label,
                     R.string.spent_or_gained_description,
                     state.expense.isIncoming
-                ) { expenseWithItemsViewModel.updateIsIncoming(it) }
+                ) { addExpenseViewModel.updateIsIncoming(it) }
                 ChoiceSwitch(
                     R.string.recurring_label,
                     R.string.recurring_description,
                     state.expense.isRecurring
-                ) { expenseWithItemsViewModel.updateIsRecurring(it) }
+                ) { addExpenseViewModel.updateIsRecurring(it) }
                 Spacer(modifier = Modifier.padding(vertical = 5.dp))
 
                 if (!isDetailed) {
                     SimpleItemEditor(
                         state.items.first(),
                         validation,
-                        expenseWithItemsViewModel,
+                        addExpenseViewModel,
                         expenseTypeViewModel
                     )
                 } else {
                     DetailedItemEditor(
                         state.items,
                         validation,
-                        expenseWithItemsViewModel,
+                        addExpenseViewModel,
                         expenseTypeViewModel
                     )
                 }
 
                 AddExpenseButton(
                     R.string.add,
-                    { expenseWithItemsViewModel.save() },
-                    { expenseWithItemsViewModel.validate() },
+                    { addExpenseViewModel.save() },
+                    { addExpenseViewModel.validate() },
                     { onClose() }
                 )
             }

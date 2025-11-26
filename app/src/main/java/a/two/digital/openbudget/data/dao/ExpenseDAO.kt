@@ -16,8 +16,8 @@ interface ExpenseDAO {
     fun getAll(): List<ExpenseWithItems>
 
     @Transaction
-    @Query("SELECT * FROM expenses WHERE date BETWEEN :startOfDay AND :endOfDay")
-    fun getAllByDate(startOfDay: Long, endOfDay: Long): Flow<List<ExpenseWithItems>>
+    @Query("SELECT * FROM expenses WHERE date = :date")
+    fun getAllForDate(date: Long): Flow<List<ExpenseWithItems>>
 
     @Insert
     suspend fun insert(expense: Expense): Long

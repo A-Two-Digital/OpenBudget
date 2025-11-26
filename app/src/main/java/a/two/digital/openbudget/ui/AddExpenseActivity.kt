@@ -2,10 +2,10 @@ package a.two.digital.openbudget.ui
 
 import a.two.digital.openbudget.OpenBudgetApplication
 import a.two.digital.openbudget.data.AppDatabase
+import a.two.digital.openbudget.logic.AddExpenseViewModel
+import a.two.digital.openbudget.logic.AddExpenseViewModelFactory
 import a.two.digital.openbudget.logic.ExpenseTypeViewModel
 import a.two.digital.openbudget.logic.ExpenseTypeViewModelFactory
-import a.two.digital.openbudget.logic.ExpenseWithItemsViewModel
-import a.two.digital.openbudget.logic.ExpenseWithItemsViewModelFactory
 import a.two.digital.openbudget.ui.screen.addexpense.AddExpenseScreen
 import a.two.digital.openbudget.ui.theme.OpenBudgetTheme
 import android.os.Bundle
@@ -25,8 +25,8 @@ class AddExpenseActivity : ComponentActivity() {
         (application as OpenBudgetApplication).database
     }
 
-    private val expenseWithItemsViewModel: ExpenseWithItemsViewModel by viewModels {
-        ExpenseWithItemsViewModelFactory(database.expenseDao(), database.expenseItemDao())
+    private val addExpenseViewModel: AddExpenseViewModel by viewModels {
+        AddExpenseViewModelFactory(database.expenseDao(), database.expenseItemDao())
     }
 
     private val expenseTypeViewModel: ExpenseTypeViewModel by viewModels {
@@ -36,7 +36,7 @@ class AddExpenseActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        expenseWithItemsViewModel.updateDate(
+        addExpenseViewModel.updateDate(
             intent.getLongExtra(
                 EXTRA_SELECTED_DATE,
                 LocalDate.now().toEpochDay()
@@ -46,7 +46,7 @@ class AddExpenseActivity : ComponentActivity() {
         setContent {
             OpenBudgetTheme {
                 AddExpenseScreen(
-                    expenseWithItemsViewModel,
+                    addExpenseViewModel,
                     expenseTypeViewModel
                 ) { finish() }
             }

@@ -2,8 +2,8 @@ package a.two.digital.openbudget.ui.screen.addexpense.component
 
 import a.two.digital.openbudget.R
 import a.two.digital.openbudget.data.entity.ExpenseItem
+import a.two.digital.openbudget.logic.AddExpenseViewModel
 import a.two.digital.openbudget.logic.ExpenseTypeViewModel
-import a.two.digital.openbudget.logic.ExpenseWithItemsViewModel
 import a.two.digital.openbudget.logic.ItemErrorType
 import a.two.digital.openbudget.logic.ValidationState
 import a.two.digital.openbudget.ui.component.ExpenseTypeSelect
@@ -15,7 +15,7 @@ import androidx.compose.runtime.Composable
 fun SimpleItemEditor(
     state: ExpenseItem,
     validation: ValidationState,
-    expenseWithItemsViewModel: ExpenseWithItemsViewModel,
+    addExpenseViewModel: AddExpenseViewModel,
     expenseTypeViewModel: ExpenseTypeViewModel
 ) {
     val itemErrors = validation.itemErrors[state.id] ?: emptySet()
@@ -24,7 +24,7 @@ fun SimpleItemEditor(
         itemErrors.contains(ItemErrorType.EXPENSE_TYPE),
         state.expenseTypeId
     ) {
-        expenseWithItemsViewModel.updateExpenseItemExpenseType(
+        addExpenseViewModel.updateExpenseItemExpenseType(
             state.id,
             it
         )
@@ -35,7 +35,7 @@ fun SimpleItemEditor(
         itemErrors.contains(ItemErrorType.PRICE),
         state.price,
     ) {
-        expenseWithItemsViewModel.updateExpenseItemPrice(
+        addExpenseViewModel.updateExpenseItemPrice(
             state.id,
             it
         )
@@ -46,7 +46,7 @@ fun SimpleItemEditor(
         false,
         state.description
     ) {
-        expenseWithItemsViewModel.updateExpenseItemDescription(
+        addExpenseViewModel.updateExpenseItemDescription(
             state.id,
             it
         )

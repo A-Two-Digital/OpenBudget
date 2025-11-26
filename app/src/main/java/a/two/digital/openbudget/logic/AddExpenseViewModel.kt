@@ -25,7 +25,7 @@ enum class ItemErrorType {
     EXPENSE_TYPE
 }
 
-class ExpenseWithItemsViewModel(
+class AddExpenseViewModel(
     private val expenseDAO: ExpenseDAO,
     private val expenseItemDAO: ExpenseItemDAO
 ) : ViewModel() {
@@ -230,14 +230,14 @@ class ExpenseWithItemsViewModel(
     }
 }
 
-class ExpenseWithItemsViewModelFactory(
+class AddExpenseViewModelFactory(
     private val expenseDAO: ExpenseDAO,
     private val expenseItemDAO: ExpenseItemDAO
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ExpenseWithItemsViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(AddExpenseViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ExpenseWithItemsViewModel(expenseDAO, expenseItemDAO) as T
+            return AddExpenseViewModel(expenseDAO, expenseItemDAO) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

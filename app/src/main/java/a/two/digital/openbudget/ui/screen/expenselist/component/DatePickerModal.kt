@@ -1,4 +1,4 @@
-package a.two.digital.openbudget.ui.screen.expense.component
+package a.two.digital.openbudget.ui.screen.expenselist.component
 
 import a.two.digital.openbudget.R
 import androidx.compose.material3.DatePicker
