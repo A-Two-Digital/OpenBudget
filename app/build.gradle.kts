@@ -63,6 +63,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.fragment)
 
     //Room
     runtimeOnly(libs.androidx.room.runtime)
