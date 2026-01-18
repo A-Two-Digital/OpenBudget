@@ -3,10 +3,8 @@ package a.two.digital.openbudget.ui.screen.addexpense.component
 import a.two.digital.openbudget.R
 import a.two.digital.openbudget.data.entity.ExpenseItem
 import a.two.digital.openbudget.logic.AddExpenseViewModel
-import a.two.digital.openbudget.logic.ExpenseTypeViewModel
 import a.two.digital.openbudget.logic.ItemErrorType
 import a.two.digital.openbudget.logic.ValidationState
-import a.two.digital.openbudget.ui.component.ExpenseTypeSelect
 import a.two.digital.openbudget.ui.component.NumberField
 import a.two.digital.openbudget.ui.component.TextField
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,7 +23,6 @@ fun DetailedItemEditor(
     state: MutableList<ExpenseItem>,
     validation: ValidationState,
     addExpenseViewModel: AddExpenseViewModel,
-    expenseTypeViewModel: ExpenseTypeViewModel
 ) {
     OutlinedCard(
         modifier = Modifier
@@ -45,16 +42,6 @@ fun DetailedItemEditor(
             ) { item ->
                 val itemErrors = validation.itemErrors[item.id] ?: emptySet()
 
-                ExpenseTypeSelect(
-                    expenseTypeViewModel,
-                    itemErrors.contains(ItemErrorType.EXPENSE_TYPE),
-                    item.expenseTypeId
-                ) {
-                    addExpenseViewModel.updateExpenseItemExpenseType(
-                        item.id,
-                        it
-                    )
-                }
                 NumberField(
                     R.string.price,
                     R.string.price_placeholder,

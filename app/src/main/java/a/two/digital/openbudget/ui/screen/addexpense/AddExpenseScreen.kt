@@ -5,6 +5,7 @@ import a.two.digital.openbudget.logic.AddExpenseViewModel
 import a.two.digital.openbudget.logic.ExpenseTypeViewModel
 import a.two.digital.openbudget.ui.component.ChoiceSwitch
 import a.two.digital.openbudget.ui.component.DateTextField
+import a.two.digital.openbudget.ui.component.ExpenseTypeSelect
 import a.two.digital.openbudget.ui.component.TextField
 import a.two.digital.openbudget.ui.screen.addexpense.component.AddExpenseButton
 import a.two.digital.openbudget.ui.screen.addexpense.component.AddExpenseTitle
@@ -96,19 +97,25 @@ fun AddExpenseScreen(
                 ) { addExpenseViewModel.updateIsRecurring(it) }
                 Spacer(modifier = Modifier.padding(vertical = 5.dp))
 
+                ExpenseTypeSelect(
+                    expenseTypeViewModel,
+                    validation.startChecking && validation.isExpenseTypeError,
+                    state.expense.expenseTypeId
+                ) {
+                    addExpenseViewModel.updateExpenseType(it)
+                }
+
                 if (!isDetailed) {
                     SimpleItemEditor(
                         state.items.first(),
                         validation,
-                        addExpenseViewModel,
-                        expenseTypeViewModel
+                        addExpenseViewModel
                     )
                 } else {
                     DetailedItemEditor(
                         state.items,
                         validation,
-                        addExpenseViewModel,
-                        expenseTypeViewModel
+                        addExpenseViewModel
                     )
                 }
 

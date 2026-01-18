@@ -9,7 +9,7 @@ import a.two.digital.openbudget.data.entity.ExpenseType
 import androidx.room.Database
 import androidx.room.RoomDatabase
 
-@Database(entities = [Expense::class, ExpenseItem::class, ExpenseType::class], version = 3)
+@Database(entities = [Expense::class, ExpenseItem::class, ExpenseType::class], version = 4)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun expenseDao(): ExpenseDAO
     abstract fun expenseItemDao(): ExpenseItemDAO

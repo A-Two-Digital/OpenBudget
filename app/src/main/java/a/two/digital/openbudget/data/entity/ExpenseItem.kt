@@ -7,11 +7,6 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "expenseItems",
     foreignKeys = [ForeignKey(
-        entity = ExpenseType::class,
-        parentColumns = ["id"],
-        childColumns = ["expenseTypeId"],
-        onDelete = ForeignKey.RESTRICT
-    ), ForeignKey(
         entity = Expense::class,
         parentColumns = ["id"],
         childColumns = ["expenseId"],
@@ -23,6 +18,5 @@ data class ExpenseItem(
     val id: Long = 0,
     val description: String,
     val price: Double,
-    val expenseTypeId: Int,
     val expenseId: Long
 )

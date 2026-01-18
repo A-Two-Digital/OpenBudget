@@ -17,12 +17,12 @@ import java.util.UUID
 data class ValidationState(
     val startChecking: Boolean = false,
     val isTitleError: Boolean = false,
+    val isExpenseTypeError: Boolean = false,
     val itemErrors: Map<Long, Set<ItemErrorType>> = emptyMap()
 )
 
 enum class ItemErrorType {
-    PRICE,
-    EXPENSE_TYPE
+    PRICE
 }
 
 class AddExpenseViewModel(
@@ -34,6 +34,7 @@ class AddExpenseViewModel(
             expense = Expense(
                 title = "",
                 date = 0,
+                expenseTypeId = -1,
                 isIncoming = false,
                 isRecurring = false
             ),
@@ -42,7 +43,6 @@ class AddExpenseViewModel(
                     id = UUID.randomUUID().hashCode().toLong(),
                     description = "",
                     price = 0.0,
-                    expenseTypeId = -1,
                     expenseId = 0
                 )
             )
@@ -61,7 +61,6 @@ class AddExpenseViewModel(
                     id = UUID.randomUUID().hashCode().toLong(),
                     description = "",
                     price = 0.0,
-                    expenseTypeId = -1,
                     expenseId = 0
                 )
             )
@@ -86,6 +85,18 @@ class AddExpenseViewModel(
     fun updateDate(date: Long) {
         _expenseWithItems.update {
             it.copy(expense = it.expense.copy(date = date))
+        }
+    }
+
+    fun updateExpenseType(expenseType: Int) {
+        _expenseWithItems.update {
+            it.copy(expense = it.expense.copy(expenseTypeId = expenseType))
+        }
+
+        if (_validationState.value.startChecking) {
+            _validationState.update {
+                it.copy(isExpenseTypeError = expenseType == -1)
+            }
         }
     }
 
@@ -144,33 +155,6 @@ class AddExpenseViewModel(
         }
     }
 
-    fun updateExpenseItemExpenseType(id: Long, expenseType: Int) {
-        _expenseWithItems.update {
-            val newItems = it.items.toMutableList()
-            val index = newItems.indexOfFirst { item -> item.id == id }
-            if (index in newItems.indices) {
-                val itemToUpdate = newItems[index]
-                newItems[index] = itemToUpdate.copy(expenseTypeId = expenseType)
-            }
-
-            it.copy(items = newItems)
-        }
-
-        if (_validationState.value.startChecking) {
-            if (expenseType == -1) {
-                _validationState.update { currentState ->
-                    val newMap = currentState.itemErrors.toMutableMap()
-                    val currentErrors = newMap[id]?.toMutableSet() ?: mutableSetOf()
-                    currentErrors.add(ItemErrorType.EXPENSE_TYPE)
-                    newMap[id] = currentErrors
-                    currentState.copy(itemErrors = newMap)
-                }
-            } else {
-                clearItemError(id, ItemErrorType.EXPENSE_TYPE)
-            }
-        }
-    }
-
     fun clearItemError(id: Long, errorType: ItemErrorType) {
         _validationState.update { currentState ->
             val currentItemErrors = currentState.itemErrors[id] ?: return@update currentState
@@ -210,9 +194,6 @@ class AddExpenseViewModel(
             if (item.price <= 0.0) {
                 errorsForItem.add(ItemErrorType.PRICE)
             }
-            if (item.expenseTypeId == -1) {
-                errorsForItem.add(ItemErrorType.EXPENSE_TYPE)
-            }
 
             if (errorsForItem.isNotEmpty()) {
                 newItemErrors[item.id] = errorsForItem
@@ -222,6 +203,7 @@ class AddExpenseViewModel(
         val newState = ValidationState(
             startChecking = true,
             isTitleError = currentExpense.title.isBlank(),
+            isExpenseTypeError = currentExpense.expenseTypeId == -1,
             itemErrors = newItemErrors
         )
         _validationState.value = newState
